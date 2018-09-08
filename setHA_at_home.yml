@@ -1,0 +1,12 @@
+---
+
+- hosts: peripheral-raspberry
+  become: true
+  tasks:
+    - include_role:
+        name: basicSetup
+    - include_role:
+        name: dockerRaspbian
+    - include_role:
+        name: docker-swarm
+
