@@ -1,0 +1,75 @@
+diff --git a/lib/ansible/modules/cloud/docker/docker_network.py b/lib/ansible/modules/cloud/docker/docker_network.py
+index 304edaf3d8c45..14a9a0dccae45 100644
+--- a/lib/ansible/modules/cloud/docker/docker_network.py
++++ b/lib/ansible/modules/cloud/docker/docker_network.py
+@@ -62,6 +62,12 @@
+     aliases:
+       - incremental
+ 
++  attachable:
++    description:
++      - Specify if the network should allow manual attachment by individual containers.
++        For overlay type networks only.
++    default: false
++
+   ipam_driver:
+     description:
+       - Specify an IPAM driver.
+@@ -95,7 +101,7 @@
+ 
+ requirements:
+     - "python >= 2.6"
+-    - "docker-py >= 1.7.0"
++    - "docker >= 1.21.0"
+     - "Please note that the L(docker-py,https://pypi.org/project/docker-py/) Python
+        module has been superseded by L(docker,https://pypi.org/project/docker/)
+        (see L(here,https://github.com/docker/docker-py/issues/1310) for details).
+@@ -140,6 +146,12 @@
+       gateway: 172.3.26.1
+       iprange: '192.168.1.0/24'
+ 
++- name: Create an attachable overlay-type network
++  docker_network:
++    name: network_three
++    driver: overlay
++    attachable: true
++
+ - name: Delete a network, disconnecting all containers
+   docker_network:
+     name: network_one
+@@ -178,6 +190,7 @@ def __init__(self, client):
+         self.ipam_driver = None
+         self.ipam_options = None
+         self.appends = None
++        self.attachable = None
+         self.force = None
+         self.debug = None
+ 
+@@ -267,6 +280,11 @@ def has_different_config(self, net):
+                         # key has different value
+                         different = True
+                         differences.append('ipam_options.%s' % key)
++        if self.parameters.attachable:
++            if (not net.get('Attachable') or
++                    net['Attachable'] != self.parameters.attachable):
++                different = True
++                differences.append('attachable')
+         return different, differences
+ 
+     def create_network(self):
+@@ -289,6 +307,7 @@ def create_network(self):
+                 resp = self.client.create_network(self.parameters.network_name,
+                                                   driver=self.parameters.driver,
+                                                   options=self.parameters.driver_options,
++                                                  attachable=self.parameters.attachable,
+                                                   ipam=ipam_config)
+ 
+                 self.existing_network = self.client.inspect_network(resp['Id'])
+@@ -376,6 +395,7 @@ def main():
+         appends=dict(type='bool', default=False, aliases=['incremental']),
+         ipam_driver=dict(type='str', default=None),
+         ipam_options=dict(type='dict', default={}),
++        attachable=dict(type='bool', default=False),
+         debug=dict(type='bool', default=False)
+     )
+ 

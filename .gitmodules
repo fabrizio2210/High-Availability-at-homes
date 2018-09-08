@@ -7,3 +7,6 @@
 [submodule "roles/basicSetup"]
 	path = roles/basicSetup
 	url = https://github.com/fabrizio2210/ansible-role-basicSetup.git
+[submodule "roles/deploy-service"]
+	path = roles/deploy-service
+	url = https://github.com/fabrizio2210/ansible-role-deployService.git

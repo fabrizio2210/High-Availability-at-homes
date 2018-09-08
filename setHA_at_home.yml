@@ -7,6 +7,31 @@
         name: basicSetup
     - include_role:
         name: dockerRaspbian
+      vars:
+        no_gluster: true
     - include_role:
         name: docker-swarm
+    - name: create backend network
+      docker_network:
+        name: "traefik_backends"
+        driver: "overlay"
+        attachable: yes
+#TODO bisogna prima creare network oppure usare Stacks
+#    - include_role:
+#        name: deploy-service
+#        run_once: true
+#        vars:
+#          name_service: "traefik"
+#          image: "arm32v6/traefik:1.5"
+#          ports_flags: "-p 80:80 8080:8080"
+#          additional_flags: | 
+#                            --constraint 'node.role == manager' 
+#                            --entrypoint "--api
+#                            --entrypoints=Name:http Address::80
+#                            --defaultentrypoints=http,https
+#                            --docker
+#                            --docker.swarmMode
+#                            --docker.domain=servep2p.com
+#                            --docker.watch"
+#          networks_flags: backends
 
