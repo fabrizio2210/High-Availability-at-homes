@@ -1,0 +1,12 @@
+
+---
+
+#TODO implementare la manipolazione dello yaml,
+# infatti bisogna aggiungere la rete, i volumi e altro
+- hosts: all
+  become: true
+  tasks:
+    - include_role:
+        name: deploy-stack
+      vars:
+        deploy_stack_stack_file: "stacks/httpd_es.yml"
