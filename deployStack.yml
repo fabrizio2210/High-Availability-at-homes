@@ -5,8 +5,46 @@
 # infatti bisogna aggiungere la rete, i volumi e altro
 - hosts: all
   become: true
+  pre_tasks:
+    - name: set some variable
+      set_fact:
+        HA_at_homes_traefik_backend_network: 'traefik_backends'
+    - name: load yaml as hash
+      include_vars:
+        file: "stacks/httpd_es.yml"
+        name: original_stack
+    
+    - debug:
+        msg: "{{ item.key }}"
+      when: item.value is keyexists('traefik.port')
+      with_dict: "{{ original_stack['services']}}"
+    
+    # find the service expoxed, looking for traefik label
+    - name: find the service expoxed, looking for traefik label
+      set_fact:
+        exposed_service: "{{ item.key }}"
+      when: item.value is keyexists('traefik.port')
+      with_dict: "{{ original_stack['services']}}"
+    
+    # insert own network
+    - name: insert network
+      set_fact:
+        stack: "{{ original_stack|combine({item.0: item.1}) }}"
+      with_together:
+        - ['networks']
+        - "{{ [{ HA_at_homes_traefik_backend_network : { 'external': True} }] }}"
+    
+    # insert own network in the exposed service
+    - name: insert network in the service
+      set_fact:
+        stack: "{{ stack|combine({'services':{ exposed_service : {item.0: item.1}}}, recursive=True) }}"
+      with_together:
+        - ['networks']
+        - [ [ [ "{{HA_at_homes_traefik_backend_network}}" ] ] ]
   tasks:
     - include_role:
         name: deploy-stack
       vars:
-        deploy_stack_stack_file: "stacks/httpd_es.yml"
+        deploy_stack_stack_hash: "{{ stack }}"
+        deploy_stack_stack_name: "httpd"
+
