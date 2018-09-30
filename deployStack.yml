@@ -6,41 +6,37 @@
 - hosts: all
   become: true
   pre_tasks:
+  # set here or in group_vars?
     - name: set some variable
       set_fact:
         HA_at_homes_traefik_backend_network: 'traefik_backends'
+        HA_at_homes_dynu_client_image: 'fabrizio2210/armv7hf-ha_dynu_client'
+        stack: {}
+
     - name: load yaml as hash
       include_vars:
         file: "stacks/httpd_es.yml"
         name: original_stack
     
+    - name: extract custom properties
+      set_fact:
+        HA_at_homes: "{{ original_stack['HA_at_homes'] }}"
+
+    - name: remove our proprieties
+      set_fact:
+        stack: "{{stack |combine({item.key: item.value})}}"
+      when: item.key not in ['HA_at_homes']
+      with_dict: "{{ original_stack }}"
+
+    - name: setup stack to use traefik
+      include_tasks: tasks/traefikSetup.yml
+      when: HA_at_homes['use_traefik']
+
+    - name: setup stack to use dynu client
+      include_tasks: tasks/dynuSetup.yml
+
     - debug:
-        msg: "{{ item.key }}"
-      when: item.value is keyexists('traefik.port')
-      with_dict: "{{ original_stack['services']}}"
-    
-    # find the service expoxed, looking for traefik label
-    - name: find the service expoxed, looking for traefik label
-      set_fact:
-        exposed_service: "{{ item.key }}"
-      when: item.value is keyexists('traefik.port')
-      with_dict: "{{ original_stack['services']}}"
-    
-    # insert own network
-    - name: insert network
-      set_fact:
-        stack: "{{ original_stack|combine({item.0: item.1}) }}"
-      with_together:
-        - ['networks']
-        - "{{ [{ HA_at_homes_traefik_backend_network : { 'external': True} }] }}"
-    
-    # insert own network in the exposed service
-    - name: insert network in the service
-      set_fact:
-        stack: "{{ stack|combine({'services':{ exposed_service : {item.0: item.1}}}, recursive=True) }}"
-      with_together:
-        - ['networks']
-        - [ [ [ "{{HA_at_homes_traefik_backend_network}}" ] ] ]
+        var: stack
   tasks:
     - include_role:
         name: deploy-stack

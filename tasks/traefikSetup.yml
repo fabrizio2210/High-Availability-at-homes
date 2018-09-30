@@ -1,0 +1,47 @@
+# These tasks are about the configuration of the stack to use traefik
+
+# find the service expoxed, looking for traefik label, useless?
+#- name: find the service expoxed, looking for traefik label
+#  set_fact:
+#    exposed_service: "{{ item.key }}"
+#  when: item.value is keyexists('traefik.port')
+#  with_dict: "{{ stack['services'] }}"
+
+# insert own network
+- name: insert network
+  set_fact:
+    stack: "{{ stack|combine({item.0: item.1}) }}"
+  with_together:
+    - ['networks']
+    - "{{ [{ HA_at_homes_traefik_backend_network : { 'external': True} }] }}"
+
+# insert own network in the exposed service
+- name: insert network in the service
+  set_fact:
+    stack: "{{ stack|combine({'services':{ HA_at_homes['exposed_service'] : {item.0: item.1}}}, recursive=True) }}"
+  with_together:
+    - ['networks']
+    - [ [ [ "{{HA_at_homes_traefik_backend_network}}" ] ] ]
+
+# insert host rule
+- name: insert host rule in the service
+  set_fact:
+    stack: "{{ stack|combine({'services':{ HA_at_homes['exposed_service'] : { 'deploy' : { 'labels' : {item.0: item.1}}}}}, recursive=True) }}"
+  with_together:
+    - [ 'traefik.frontend.rule' ]
+    - [   "Host:{{ HA_at_homes['node_name'] }}.{{ HA_at_homes['domain_name'] }}"   ]
+
+# insert port 80
+- name: insert port 80 in the service
+  set_fact:
+    stack: "{{ stack|combine({'services':{ HA_at_homes['exposed_service'] : { 'deploy' : { 'labels' : {item.0: item.1}}}}}, recursive=True) }}"
+  with_together:
+    - [ 'traefik.port' ]
+    - [   "80"   ]
+  when: not HA_at_homes['https']
+
+- name: unsuported https
+  fail:
+    msg: "https is not supported yed"
+  when: HA_at_homes['https']
+

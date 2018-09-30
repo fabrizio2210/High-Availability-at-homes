@@ -1,0 +1,35 @@
+# These tasks insert the service dynu client to allow HA with DNS
+
+
+- name: insert dynu client in the services
+  set_fact:
+    stack: "{{ stack|combine({'services':{ 'dynu_client' : {item.0: item.1}}}, recursive=True) }}"
+  with_together:
+    - ['image' ]
+    - [ "{{ HA_at_homes_dynu_client_image }}" ]
+
+- name: insert environment for dynu client 
+  set_fact:
+    stack: "{{ stack|combine({'services':{ 'dynu_client' : { 'environment' : {item.0: item.1}}}}, recursive=True) }}"
+  with_together:
+    - ['DYNU_USER', 
+       'DYNU_SECRET',
+       'DYNU_DOMAIN_NAME', 
+       'DYNU_NODE_NAME',
+       'DYNU_LOCATION',
+       'DYNU_PASSWORD',
+       'DYNU_USERNAME',
+       'DYNU_DEBUG',
+       'PYTHONUNBUFFERED',
+       'DYNU_EXTERNAL_TEST']
+    - [ "{{ HA_at_homes['dynu_user'] }}",
+        "{{ HA_at_homes['dynu_secret'] }}",
+        "{{ HA_at_homes['domain_name'] }}",
+        "{{ HA_at_homes['node_name'] }}",
+        "{{ inventory_hostname|regex_replace('\\.', '') }}",
+        "{{ HA_at_homes['dynu_password'] }}",
+        "{{ HA_at_homes['dynu_username'] }}",
+        "1",
+        "1",
+        "/usr/local/bin/isItAlive.sh"]
+
