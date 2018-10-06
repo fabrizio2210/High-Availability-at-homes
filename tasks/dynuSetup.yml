@@ -19,6 +19,7 @@
        'DYNU_LOCATION',
        'DYNU_PASSWORD',
        'DYNU_USERNAME',
+       'DYNU_PORT',
        'DYNU_DEBUG',
        'PYTHONUNBUFFERED',
        'DYNU_EXTERNAL_TEST']
@@ -29,6 +30,7 @@
         "{{ inventory_hostname|regex_replace('\\.', '') }}",
         "{{ HA_at_homes['dynu_password'] }}",
         "{{ HA_at_homes['dynu_username'] }}",
+        "{{ HA_at_homes['exposed_port'] }}",
         "1",
         "1",
         "/usr/local/bin/isItAlive.sh"]
