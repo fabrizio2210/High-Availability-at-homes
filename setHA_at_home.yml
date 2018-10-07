@@ -21,7 +21,7 @@
       run_once: true
       vars:
         name_service: "traefik"
-        image: "arm32v6/traefik:1.5"
+        image: "arm32v6/traefik"
         volumes:
           - "type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
         additional_args: > 
