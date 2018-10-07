@@ -1,0 +1,4 @@
+HA_at_homes_traefik_backend_network: 'traefik_backends'
+HA_at_homes_dynu_client_image: 'fabrizio2210/armv7hf-ha_dynu_client'
+HA_at_homes_volumes_dir: "/mnt/HDD/docker"
+HA_at_homes_volumes_type: "local"

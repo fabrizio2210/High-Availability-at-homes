@@ -3,16 +3,11 @@
 
 #TODO implementare la manipolazione dello yaml,
 # infatti bisogna aggiungere la rete, i volumi e altro
-- hosts: all
+- hosts: target
   become: true
   pre_tasks:
-  # set here or in group_vars?
     - name: set some variable
       set_fact:
-        HA_at_homes_traefik_backend_network: 'traefik_backends'
-        HA_at_homes_dynu_client_image: 'fabrizio2210/armv7hf-ha_dynu_client'
-        HA_at_homes_volumes_dir: "/mnt/HDD/docker"
-        HA_at_homes_volumes_type: "local"
         stack_file: "stacks/grav.yml"
         use_volumes: False
         stack: {}

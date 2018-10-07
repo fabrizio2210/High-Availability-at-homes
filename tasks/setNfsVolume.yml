@@ -1,0 +1,16 @@
+
+- name: create folder on remote host
+  file:
+    state: directory
+    path: "{{ HA_at_homes_volumes_dir }}/{{ stack_name }}/{{ volume_name }}"
+  delegate_to: "{{ HA_at_homes_nfs_server }}"
+
+
+- name: insert remote volumes information
+  set_fact: 
+    stack: "{{ stack|combine({'volumes':{ volume_name : prop}}, recursive=True) }}"
+  loop_control:
+    loop_var: 'prop'
+  with_items:
+  - { 'driver':'local'}
+  - { 'driver_opts' : { 'type':'nfs', 'o':"addr={{ HA_at_homes_nfs_server }},nolock,soft,rw", 'device': ":{{ HA_at_homes_volumes_dir }}/{{ stack_name }}/{{ volume_name }}" }}
