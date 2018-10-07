@@ -1,0 +1,15 @@
+
+- name: create folder
+  file:
+    state: directory
+    path: "{{ HA_at_homes_volumes_dir }}/{{ stack_name }}/{{ volume_name }}"
+
+
+- name: insert local volumes information
+  set_fact: 
+    stack: "{{ stack|combine({'volumes':{ volume_name : prop}}, recursive=True) }}"
+  loop_control:
+    loop_var: 'prop'
+  with_items:
+  - { 'driver':'local'}
+  - { 'driver_opts' : { 'type':'none', 'o':'bind', 'device': "{{ HA_at_homes_volumes_dir }}/{{ stack_name }}/{{ volume_name }}" }}

@@ -1,0 +1,31 @@
+
+# HA_at_homes_volumes_type:
+# HA_at_homes_volumes_dir:
+
+# if local volumes
+#- name: insert local volumes information
+#  set_fact: 
+#    stack: "{{ stack|combine({'volumes':{ 'data-grav' : {item.0:item.1}}}, recursive=True) }}"
+#  with_together:
+#  - ['driver', 'driver_opts']
+#  - [ 'local', { 'type':'none', 'o':'bind', 'device': "{{ HA_at_homes_volumes_dir }}/{{ stack_name }}/data_grav" } ]
+#  when: HA_at_homes_volumes_type == 'local'
+
+#- name: insert local volumes information
+#  set_fact: 
+#    stack: "{{ stack|combine({'volumes':{ 'data-grav' : item}}, recursive=True) }}"
+#  with_items:
+#  - { 'driver':'local'}
+#  - { 'driver_opts' : { 'type':'none', 'o':'bind', 'device': "{{ HA_at_homes_volumes_dir }}/{{ stack_name }}/data_grav" }}
+#  when: HA_at_homes_volumes_type == 'local'
+
+- include_tasks: "setLocalVolume.yml"
+  vars: 
+    volume_name: "{{ item }}"
+  with_items: "{{ stack['volumes'] }}"
+  when: HA_at_homes_volumes_type == 'local'
+
+
+
+
+

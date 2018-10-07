@@ -11,7 +11,10 @@
       set_fact:
         HA_at_homes_traefik_backend_network: 'traefik_backends'
         HA_at_homes_dynu_client_image: 'fabrizio2210/armv7hf-ha_dynu_client'
+        HA_at_homes_volumes_dir: "/mnt/HDD/docker"
+        HA_at_homes_volumes_type: "local"
         stack_file: "stacks/grav.yml"
+        use_volumes: False
         stack: {}
 
     - name: load yaml as hash
@@ -22,12 +25,23 @@
     - name: extract custom properties
       set_fact:
         HA_at_homes: "{{ original_stack['HA_at_homes'] }}"
+        stack_name: "{{ (stack_file | basename | splitext)[0] }}"
 
     - name: remove our proprieties
       set_fact:
         stack: "{{stack |combine({item.key: item.value})}}"
       when: item.key not in ['HA_at_homes']
       with_dict: "{{ original_stack }}"
+
+    - name: find if volumes are used
+      set_fact:
+        use_volumes: True
+      when: item.key in ['volumes']
+      with_dict: "{{ stack }}"
+
+    - name: setup volumes 
+      include_tasks: tasks/volumesSetup.yml
+      when: use_volumes
 
     - name: setup stack to use traefik
       include_tasks: tasks/traefikSetup.yml
@@ -43,5 +57,5 @@
         name: deploy-stack
       vars:
         deploy_stack_stack_hash: "{{ stack }}"
-        deploy_stack_stack_name: "{{ (stack_file | basename | splitext)[0] }}"
+        deploy_stack_stack_name: "{{ stack_name }}"
 
