@@ -3,12 +3,18 @@
 
 #TODO implementare la manipolazione dello yaml,
 # infatti bisogna aggiungere la rete, i volumi e altro
+
+#Pass stack_file from command line
+
 - hosts: target
   become: true
   pre_tasks:
+    - fail:
+        msg: "Define stack_file, pass it from command line"
+      when: stack_file is not defined
+
     - name: set some variable
       set_fact:
-        stack_file: "stacks/grav.yml"
         use_volumes: False
         stack: {}
 
