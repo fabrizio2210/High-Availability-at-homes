@@ -1,8 +1,4 @@
-
 ---
-
-#TODO implementare la manipolazione dello yaml,
-# infatti bisogna aggiungere la rete, i volumi e altro
 
 #Pass stack_file from command line
 
