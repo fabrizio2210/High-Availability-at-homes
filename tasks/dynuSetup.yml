@@ -27,11 +27,11 @@
         "{{ HA_at_homes['dynu_secret'] }}",
         "{{ HA_at_homes['domain_name'] }}",
         "{{ HA_at_homes['node_name'] }}",
-        "{{ inventory_hostname|regex_replace('\\.', '') }}",
+        "{{ inventory_hostname|regex_replace('\\.', '')|regex_replace('-', '')|regex_replace('_', '')}}",
         "{{ HA_at_homes['dynu_password'] }}",
         "{{ HA_at_homes['dynu_username'] }}",
         "{{ HA_at_homes['exposed_port'] }}",
         "1",
         "1",
-        "/usr/local/bin/isItAlive.sh"]
+        "/usr/local/bin/isIt200.sh"]
 

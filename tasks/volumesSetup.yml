@@ -14,7 +14,6 @@
   with_items: "{{ stack['volumes'] }}"
   when: HA_at_homes_volumes_type == 'nfs'
 
-
-
-
-
+- include_tasks: "setSyncVolume.yml"
+  vars: 
+    volumes_list: "{{ stack['volumes'] }}"
