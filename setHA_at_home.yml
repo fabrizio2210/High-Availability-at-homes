@@ -9,17 +9,10 @@
         name: dockerRaspbian
       vars:
         no_gluster: true
-
-- hosts: peripheral-raspberry
-  become: true
-  serial: 1
-  tasks:
     - include_role:
         name: docker-swarm
-
-- hosts: peripheral-raspberry
-  become: true
-  tasks:
+      vars:
+        single_swarm: True
     - name: create backend network
       docker_network:
         name: "traefik_backends"
@@ -27,7 +20,6 @@
         attachable: yes
     - include_role:
         name: deploy-service
-      run_once: true
       vars:
         name_service: "traefik"
 #        image: "arm32v6/traefik"
