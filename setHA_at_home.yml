@@ -13,11 +13,20 @@
         name: docker-swarm
       vars:
         single_swarm: True
-    - name: create backend network
-      docker_network:
-        name: "traefik_backends"
-        driver: "overlay"
-        attachable: yes
+#    - name: create backend network
+#      docker_network:
+#        name: "{{ HA_at_homes_traefik_backend_network }}"
+#        driver: "overlay"
+#        attachable: yes
+    - name: check network
+      command: "docker inspect {{ HA_at_homes_traefik_backend_network }}"
+      register: check_net
+      changed_when: false
+      ignore_errors: yes
+    - name: create network
+      command: "docker network create --attachable --driver overlay {{ HA_at_homes_traefik_backend_network }}"
+      when: check_net is failed
+
     - include_role:
         name: deploy-service
       vars:
