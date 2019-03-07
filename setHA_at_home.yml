@@ -41,7 +41,6 @@
                           --publish published=8080,target=8080,mode=host
                           --update-delay 10s
                           --update-parallelism 1
-                          --restart-condition on-failure
                           --mode global
                           --constraint 'node.role == manager' 
         command: >-
