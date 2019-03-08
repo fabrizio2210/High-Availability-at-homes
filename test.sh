@@ -2,14 +2,12 @@
 set -x
 set -e
 #TODO
-# - verificare che nell'immagine x86_64 ci sia il curl
 # - fare in modo che quando faccio pull del latest si prenda l'ultima immagine x86_64
-# - capire perche' le vm perdono IP statici, forse sto sbagliando sintassi vagrant, uso stesso nome su tutti
 # - rendere  robusto script dynu se non c'e' api.ipify.org disponibile
-# - capire chi sovrascrive il /etc/resolv.conf (il dhcp?)
 
 # docker1 -> 192.168.122.10
 # docker2 -> 192.168.122.11
+# mockup  -> 192.168.122.20
 dockerList=(
 docker1
 docker2
@@ -60,86 +58,14 @@ for _host in ${dockerList[@]} ; do
 done
 
 
-
-# creation of CA or selfsigned certificate
-cd $tempDir
-cp -v $_pwd/test/ca.crt $tempDir/
-cp -v $_pwd/test/ca.key $tempDir/
-
-##create CA
-#openssl genrsa -out ca.key 2048
-#openssl req -new -x509 -key ca.key -out ca.crt -config <(
-#cat <<-EOF
-#[req]
-#req_extensions = v3_req
-#distinguished_name = dn
-#prompt = no
-#
-#[ v3_req ]
-#basicConstraints = CA:FALSE
-#keyUsage = nonRepudiation, digitalSignature, keyEncipherment
-#
-#[ dn ]
-#C=IT
-#ST=Italy
-#L=Trento
-#O=End Point
-#OU=Testing Domain
-#emailAddress=test@example.com
-#CN = my test root CA
-#EOF
-#)
-
-
-# create certificates
-openssl req -new -sha256 -nodes -out api.ipify.org.csr -newkey rsa:2048 -keyout api.ipify.org.key -config <(
-cat <<-EOF
-[req]
-default_bits = 2048
-prompt = no
-default_md = sha256
-req_extensions = req_ext
-distinguished_name = dn
-
-[ dn ]
-C=IT
-ST=Italy
-L=Trento
-O=End Point
-OU=Testing Domain
-emailAddress=test@example.com
-CN = api.ipify.org
-
-[ req_ext ]
-subjectAltName = @alt_names
-
-[ alt_names ]
-DNS.1 = api.ipify.org
-DNS.2 = www.api.ipify.org
-EOF
-)
-# sign certificate
-openssl x509 -req -in api.ipify.org.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out api.ipify.org.crt
-
-
-cd $_pwd
-
 # fix problem with DHCP
-#ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo nmcli connection reload"
-#ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo systemctl restart network.service"
-
 # avoidlost IP
 ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo ip addr flush eth1 ; sleep 1 ; sudo systemctl restart systemd-networkd.service"
 ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo killall dhclient"
 # copy of the certificates in the virtual machines
-scp -i $mockupKey -o StrictHostKeyChecking=no   $tempDir/api.ipify.org.crt  $mockupUser@$mockupIP:/tmp/api.ipify.org.crt
-ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo cp -v /tmp/api.ipify.org.crt /etc/ssl/certs/api.ipify.org.crt"
-
-scp -i $mockupKey -o StrictHostKeyChecking=no   $tempDir/api.ipify.org.key  $mockupUser@$mockupIP:/tmp/api.ipify.org.key
-ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo cp -v /tmp/api.ipify.org.key /etc/ssl/private/api.ipify.org.key"
 
 # installation of apache and setup reverse proxy (docker?)
-ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo apt update && sudo apt install -y apache2 python3 python3-pip "
+ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo apt update && sudo apt install -y python3 python3-pip "
 ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo pip3 install flask "
 ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo pip3 install flask-cors "
 
@@ -147,13 +73,6 @@ ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo pip3 i
 scp -i $mockupKey -o StrictHostKeyChecking=no   test/mockup/api.ipify.org.py $mockupUser@$mockupIP:/tmp/api.ipify.org.py
 ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo cp -v /tmp/api.ipify.org.py /usr/local/bin/api.ipify.org.py && sudo chmod +x /usr/local/bin/api.ipify.org.py"
 
-scp -i $mockupKey -o StrictHostKeyChecking=no   test/mockup/apache.conf $mockupUser@$mockupIP:/tmp/apache.conf
-ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo cp -v /tmp/apache.conf /etc/apache2/sites-available/api.ipify.org-ssl.conf && sudo ln -fs ../sites-available/api.ipify.org-ssl.conf /etc/apache2/sites-enabled/api.ipify.org-ssl.conf"
-
-ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo a2enmod ssl "
-ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo a2enmod proxy "
-ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo a2enmod proxy_http "
-ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo systemctl restart apache2 "
 
 # deploy
 ansible-playbook -i vagrant-hosts.list deployStack.yml --extra-vars "stack_file=stacks/httpd_es.yml"
