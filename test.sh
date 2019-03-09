@@ -83,7 +83,5 @@ ansible-playbook -i vagrant-hosts.list deployStack.yml --extra-vars "stack_file=
 
 ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo python3 /usr/local/bin/api.ipify.org.py "
 
-# deploy of stack
-ansible-playbook -i vagrant-hosts.list deployStack.yml --extra-vars "stack_file=stacks/httpd_es.yml"
 
 [ -n "$tempDir" ] && rm -rf "$tempDir"
