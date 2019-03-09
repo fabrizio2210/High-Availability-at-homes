@@ -3,7 +3,6 @@ set -x
 set -e
 #TODO
 # - fare in modo che quando faccio pull del latest si prenda l'ultima immagine x86_64
-# - rendere  robusto script dynu se non c'e' api.ipify.org disponibile
 
 # docker1 -> 192.168.122.10
 # docker2 -> 192.168.122.11
@@ -25,9 +24,14 @@ mockupIP="192.168.122.20"
 mockupKey=".vagrant/machines/mockup/libvirt/private_key"
 mockupUser="vagrant"
 
+stackToDeploy=$1
 _pwd=$PWD
 tempDir=$(mktemp -d)
 
+if [ ! -e $stackToDeploy ] ; then
+  echo "The stack \"$stackToDeploy\" doesn't exist, define another one"
+  exit 1
+fi
 # Vagrant up
 vagrant up
 
@@ -75,7 +79,7 @@ ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo cp -v 
 
 
 # deploy
-ansible-playbook -i vagrant-hosts.list deployStack.yml --extra-vars "stack_file=stacks/httpd_es.yml"
+ansible-playbook -i vagrant-hosts.list deployStack.yml --extra-vars "stack_file=$stackToDeploy"
 
 ssh -i $mockupKey -o StrictHostKeyChecking=no $mockupUser@$mockupIP "sudo python3 /usr/local/bin/api.ipify.org.py "
 
