@@ -13,3 +13,15 @@
 [submodule "roles/deploy-stack"]
 	path = roles/deploy-stack
 	url = https://github.com/fabrizio2210/ansible-role-deployStack.git
+[submodule "components/HA_volume_sync_proxy"]
+	path = components/HA_volume_sync_proxy
+	url = https://github.com/fabrizio2210/HA_volume_sync_proxy.git
+[submodule "components/HA_volume_sync_server"]
+	path = components/HA_volume_sync_server
+	url = https://github.com/fabrizio2210/HA_volume_sync_server.git
+[submodule "components/HA_volume_sync_deployer"]
+	path = components/HA_volume_sync_deployer
+	url = https://github.com/fabrizio2210/HA_volume_sync_deployer.git
+[submodule "components/HA_dynu_client"]
+	path = components/HA_dynu_client
+	url = https://github.com/fabrizio2210/HA_dynu_client.git
